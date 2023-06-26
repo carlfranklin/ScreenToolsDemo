@@ -105,14 +105,21 @@ namespace ScreenToolsDemo
                                     // are equal. That means the app is stalled.
                                     if (ScreenTools.BitmapsAreEqual(bitmap, lastScreenShot))
                                     {
-                                        // get the area where it says "earthcam"
-                                        var earthCamRect = new Rectangle(1793, 1011, 104, 22);
+                                        // get vertical text area that identifies the webcam
+                                        var textRect = new Rectangle(99, 32, 35, 64);
+
+                                        // crop
+                                        var verticalBitmap = ScreenTools.CropBitmap(bitmap, textRect);
+
+                                        // rotate right
+                                        var textBitmap = ScreenTools.RotateImageRight90Degrees(verticalBitmap);
+
+                                        // read the text
+                                        var entireRect = new Rectangle(0, 0, 64, 35);
+                                        var verticalText = ScreenTools.GetTextInArea(textBitmap, entireRect);
                                         
-                                        // get the text in this area
-                                        var earthCamText = ScreenTools.GetTextInArea(bitmap, earthCamRect);
-                                        
-                                        // does it actually say "EarthCam"?
-                                        if (earthCamText.ToLower() == "earthcam")
+                                        // does it actually say "NINE" ?
+                                        if (verticalText.ToLower() == "nine")
                                         {
                                             // yes. The webcam must have stalled.
                                             // get the current window handle

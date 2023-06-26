@@ -56,6 +56,13 @@ public static class ScreenTools
         return text;
     }
 
+    public static Bitmap RotateImageRight90Degrees(Bitmap bitmap)
+    {
+        var bmp = (Bitmap)bitmap.Clone();
+        bmp.RotateFlip(RotateFlipType.Rotate90FlipNone);
+        return bmp;
+    }
+
     /// <summary>
     /// Returns a cropped version of a bitmap
     /// </summary>
