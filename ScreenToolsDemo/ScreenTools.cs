@@ -5,6 +5,7 @@ using System.Drawing;
 using IronOcr;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Threading;
 
 public static class ScreenTools
 {
@@ -40,19 +41,20 @@ public static class ScreenTools
         Bitmap cropped = CropBitmap(bitmap, rect);
 
         // save it to a temporary file
-        string tempFile = Path.GetTempFileName();
+        string tempFile = $"{Environment.CurrentDirectory}\\{DateTime.Now.Ticks}.tmp";
         cropped.Save(tempFile);
+        var bytes = File.ReadAllBytes(tempFile);
 
         // use OCR to read the text
         var Ocr = new IronTesseract();
-
+    
         // read the text
-        using (var Input = new OcrInput(tempFile))
+        using (var Input = new OcrInput(bytes))
         {
             var Result = Ocr.Read(Input);
             text = Result.Text;
         }
-
+        File.Delete(tempFile);
         return text;
     }
 

@@ -106,20 +106,40 @@ namespace ScreenToolsDemo
                                     if (ScreenTools.BitmapsAreEqual(bitmap, lastScreenShot))
                                     {
                                         // get vertical text area that identifies the webcam
-                                        var textRect = new Rectangle(99, 32, 35, 64);
+                                        var textRect1 = new Rectangle(99, 32, 35, 64);
 
                                         // crop
-                                        var verticalBitmap = ScreenTools.CropBitmap(bitmap, textRect);
+                                        var cropped1 = ScreenTools.CropBitmap(bitmap, textRect1);
 
                                         // rotate right
-                                        var textBitmap = ScreenTools.RotateImageRight90Degrees(verticalBitmap);
+                                        var rotated1 = ScreenTools.RotateImageRight90Degrees(cropped1);
+
+                                        // get a high-contrast version
+                                        var highContrast = ScreenTools.AdjustContrast(rotated1, -50);
+
+                                        // save to test
+                                       // var testBmpPath = $"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\\test.bmp";
+                                       // highContrast.Save(testBmpPath);
 
                                         // read the text
-                                        var entireRect = new Rectangle(0, 0, 64, 35);
-                                        var verticalText = ScreenTools.GetTextInArea(textBitmap, entireRect);
-                                        
-                                        // does it actually say "NINE" ?
-                                        if (verticalText.ToLower() == "nine")
+                                        var rect1 = new Rectangle(0, 0, 64, 35);
+                                        var text1 = ScreenTools.GetTextInArea(rotated1, rect1);
+                                        var text1a = ScreenTools.GetTextInArea(highContrast, rect1);
+
+                                        // just in case, look for the text "Dublin Cam" which is higher contrast at night
+                                        var textRect2 = new Rectangle(20, 940, 137, 31);
+
+                                        // crop
+                                        var cropped2 = ScreenTools.CropBitmap(bitmap, textRect2);
+
+                                        // read the text
+                                        var rect2 = new Rectangle(0, 0, 137, 31);
+                                        var text2 = ScreenTools.GetTextInArea(cropped2, rect2);
+
+                                        // text found ?
+                                        if (text1.ToLower() == "nine" ||
+                                            text1a.ToLower() == "nine" ||
+                                            text2.ToLower() == "dublin cam")
                                         {
                                             // yes. The webcam must have stalled.
                                             // get the current window handle
