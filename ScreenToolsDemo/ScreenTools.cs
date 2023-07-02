@@ -33,16 +33,13 @@ public static class ScreenTools
     /// <param name="bitmap"></param>
     /// <param name="rect"></param>
     /// <returns></returns>
-    public static string GetTextInArea(Bitmap bitmap, Rectangle rect)
+    public static string GetTextInArea(Bitmap bitmap)
     {
         string text = string.Empty;
 
-        // crop the bitmap to the rect
-        Bitmap cropped = CropBitmap(bitmap, rect);
-
         // save it to a temporary file
         string tempFile = $"{Environment.CurrentDirectory}\\{DateTime.Now.Ticks}.tmp";
-        cropped.Save(tempFile);
+        bitmap.Save(tempFile);
         var bytes = File.ReadAllBytes(tempFile);
 
         // use OCR to read the text
