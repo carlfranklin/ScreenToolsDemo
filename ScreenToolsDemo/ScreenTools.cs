@@ -2,7 +2,8 @@
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Drawing;
-using IronOcr;
+//using IronOcr;
+using Tesseract;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Threading;
@@ -40,18 +41,26 @@ public static class ScreenTools
         // save it to a temporary file
         string tempFile = $"{Environment.CurrentDirectory}\\{DateTime.Now.Ticks}.tmp";
         bitmap.Save(tempFile);
-        var bytes = File.ReadAllBytes(tempFile);
 
-        // use OCR to read the text
-        var Ocr = new IronTesseract();
-    
-        // read the text
-        using (var Input = new OcrInput(bytes))
+        try
         {
-            var Result = Ocr.Read(Input);
-            text = Result.Text;
+            using (var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default))
+            {
+                using (var img = Pix.LoadFromFile(tempFile))
+                {
+                    using (var page = engine.Process(img))
+                    {
+                        text = page.GetText().Trim();
+                    }
+                }
+            }
         }
+        catch (Exception e)
+        {
+        }
+        
         File.Delete(tempFile);
+
         return text;
     }
 

@@ -34,7 +34,7 @@ namespace ScreenToolsDemo
             public int Y;
         }
 
-        static void ProcessMatch (IntPtr browserWindowHandle, IntPtr currentWindowHandle, TextArea area)
+        static void ProcessMatch(IntPtr browserWindowHandle, IntPtr currentWindowHandle, TextArea area)
         {
             // We have a match!
             if (area.Action == UIAction.SendKeys)
@@ -197,6 +197,19 @@ namespace ScreenToolsDemo
                         };
                         site.TextAreas.Add(textArea5);
 
+                        // Look for text indicating the page has reset from full-screen mode
+                        var textArea6 = new TextArea();
+                        textArea6.Bounds = new Rectangle(335, 805, 440, 265);
+                        textArea6.Text = "Welcome to Dublin, Ireland";
+                        textArea6.Action = UIAction.Click;
+                        textArea6.Hover = true; // Hover over the coordinates before clicking
+                        textArea6.ClickCoordinates = new Point()
+                        {
+                            X = screen.Bounds.X + 1560,
+                            Y = screen.Bounds.Y + 760
+                        };
+                        site.TextAreas.Add(textArea6);
+
                         // Add the sites
                         settings.Sites.Add(site);
 
@@ -236,7 +249,7 @@ namespace ScreenToolsDemo
             {
                 if (!String.IsNullOrEmpty(process.MainWindowTitle))
                 {
-                    if (process.MainWindowTitle.ToLower().StartsWith("earthcam"))
+                    if (process.MainWindowTitle.ToLower().Contains(currentSite.WindowTitle.ToLower()))
                     {
                         // found it!
                         thisProcess = process;
@@ -268,65 +281,75 @@ namespace ScreenToolsDemo
                     // create a new graphics object from the bitmap
                     using (Graphics graphics = Graphics.FromImage(bitmap))
                     {
-                        // take the screenshot (entire screen)
-                        graphics.CopyFromScreen(screen.Bounds.Location, Point.Empty,
-                            screen.Bounds.Size);
-
-                        foreach (var area in currentSite.TextAreas)
+                        try
                         {
-                            if (area.OnlyCheckIfFrozen)
+
+                            // take the screenshot (entire screen)
+                            graphics.CopyFromScreen(screen.Bounds.Location, Point.Empty,
+                                screen.Bounds.Size);
+
+                            foreach (var area in currentSite.TextAreas)
                             {
-                                if (lastScreenShot == null)
+                                if (area.OnlyCheckIfFrozen)
                                 {
-                                    continue;
+                                    if (lastScreenShot == null)
+                                    {
+                                        continue;
+                                    }
+
+                                    // is this the same as the last screen shot?
+                                    if (!ScreenTools.BitmapsAreEqual(bitmap, lastScreenShot))
+                                    {
+                                        continue;
+                                    }
                                 }
 
-                                // is this the same as the last screen shot?
-                                if (!ScreenTools.BitmapsAreEqual(bitmap, lastScreenShot))
+                                // crop 
+                                var cropped = ScreenTools.CropBitmap(bitmap, area.Bounds);
+
+                                // rotate?
+                                if (area.RotationDegrees == 90)
                                 {
-                                    continue;
+                                    cropped = ScreenTools.RotateImageRight90Degrees(cropped);
                                 }
-                            }
 
-                            // crop 
-                            var cropped = ScreenTools.CropBitmap(bitmap, area.Bounds);
-                            
-                            // rotate?
-                            if (area.RotationDegrees == 90)
-                            {
-                                cropped = ScreenTools.RotateImageRight90Degrees(cropped);
-                            }
-
-                            // contrast?
-                            if (area.ContrastAdjustment != 0)
-                            {
-                                cropped = ScreenTools.AdjustContrast(cropped, area.ContrastAdjustment);
-                            }
-
-                            // compare png?
-                            if (area.Text == string.Empty && area.ComparePngPath != string.Empty)
-                            {
-                                // load bitmap
-                                var patch = new Bitmap(area.ComparePngPath);
-
-                                // compare
-                                if (ScreenTools.BitmapsAreEqual(cropped, patch))
+                                // contrast?
+                                if (area.ContrastAdjustment != 0)
                                 {
-                                    ProcessMatch(thisProcess.MainWindowHandle, currentWindowHandle, area);
+                                    cropped = ScreenTools.AdjustContrast(cropped, area.ContrastAdjustment);
                                 }
-                            }
-                            else
-                            {
-                                // get text
-                                var text = ScreenTools.GetTextInArea(cropped);
-                                if (text.ToLower() == area.Text.ToLower())
+
+                                // compare png?
+                                if (area.Text == string.Empty && area.ComparePngPath != string.Empty)
                                 {
-                                    ProcessMatch(thisProcess.MainWindowHandle, currentWindowHandle, area);
+                                    // load bitmap
+                                    var patch = new Bitmap(area.ComparePngPath);
+
+                                    var testBmpPath = $"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\\test.bmp";
+                                    patch.Save(testBmpPath);
+
+                                    // compare
+                                    if (ScreenTools.BitmapsAreEqual(cropped, patch))
+                                    {
+                                        ProcessMatch(thisProcess.MainWindowHandle, currentWindowHandle, area);
+                                    }
+                                }
+                                else
+                                {
+                                    // get text
+                                    var text = ScreenTools.GetTextInArea(cropped);
+                                    if (text.ToLower() == area.Text.ToLower())
+                                    {
+                                        ProcessMatch(thisProcess.MainWindowHandle, currentWindowHandle, area);
+                                    }
                                 }
                             }
                         }
+                        catch
+                        {
+                        }
                     }
-                    
+
                     // save the bitmap
                     lastScreenShot = (Bitmap)bitmap.Clone();
                 }
