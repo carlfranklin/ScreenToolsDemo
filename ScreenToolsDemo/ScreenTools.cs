@@ -7,6 +7,7 @@ using Tesseract;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Threading;
+using System.Diagnostics;
 
 public static class ScreenTools
 {
@@ -27,6 +28,28 @@ public static class ScreenTools
         public int X;
         public int Y;
     }
+
+    public static Process FindProcessByWindowTitle(string title)
+    {
+        // get the list of processes
+        Process[] processlist = Process.GetProcesses();
+        
+        // look for the one with the text
+        foreach (Process process in processlist)
+        {
+            if (!String.IsNullOrEmpty(process.MainWindowTitle))
+            {
+                if (process.MainWindowTitle.ToLower().Contains(title.ToLower().Trim()))
+                {
+                    // found it!
+                    return process;
+                }
+            }
+        }
+
+        return null;
+    }
+
 
     /// <summary>
     /// Uses IronOcr to read text in an area of a bitmap

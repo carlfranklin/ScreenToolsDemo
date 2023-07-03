@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using System.Diagnostics.Eventing.Reader;
+using System.Security.Policy;
 
 namespace ScreenToolsDemo
 {
@@ -26,7 +27,11 @@ namespace ScreenToolsDemo
         static extern bool SetCursorPos(int X, int Y);
 
         [DllImport("user32.dll")]
-        public static extern bool GetCursorPos(out POINT lpPoint);
+        static extern bool GetCursorPos(out POINT lpPoint);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+
 
         public struct POINT
         {
@@ -90,14 +95,16 @@ namespace ScreenToolsDemo
             Settings settings = null;
             Site currentSite = null;
             Screen screen = null;
-
             int ScreenIndex = 0;
+
+            // get the current window handle
+            var currentWindowHandle = GetForegroundWindow();
 
             // This code checks for a settings file and creates one if it's not there
             var settingsFilePath = $"{Environment.CurrentDirectory}\\settings.json";
             if (File.Exists(settingsFilePath))
             {
-                File.Delete(settingsFilePath);
+                //File.Delete(settingsFilePath);
             }
 
             if (!File.Exists(settingsFilePath))
@@ -228,43 +235,46 @@ namespace ScreenToolsDemo
                 // Settings file found. Read the ScreenIndex
                 var json = File.ReadAllText(settingsFilePath);
                 settings = JsonConvert.DeserializeObject<Settings>(json);
+                currentSite = settings.Sites[0];
                 ScreenIndex = settings.ScreenIndex;
                 screen = Screen.AllScreens[ScreenIndex];
             }
 
             // we need the process, so we can get the window handle
-            Process thisProcess = null;
+            Process thisProcess = ScreenTools.FindProcessByWindowTitle(currentSite.WindowTitle);
 
-            // we need this to see if the screen has frozen
-            Bitmap lastScreenShot = null;
 
-            // get the list of processes
-            Process[] processlist = Process.GetProcesses();
-
-            // get the current window handle
-            var currentWindowHandle = GetForegroundWindow();
-
-            // look for earthcam
-            foreach (Process process in processlist)
-            {
-                if (!String.IsNullOrEmpty(process.MainWindowTitle))
-                {
-                    if (process.MainWindowTitle.ToLower().Contains(currentSite.WindowTitle.ToLower()))
-                    {
-                        // found it!
-                        thisProcess = process;
-                        break;
-                    }
-                }
-            }
 
             // bail if we can't find the process.
             if (thisProcess == null)
             {
-                Console.WriteLine("Can't find EarthCam");
-                return;
                 // start the process
+                var edge = new Process();
+                edge.StartInfo.WindowStyle = ProcessWindowStyle.Maximized;
+                Process.Start($"microsoft-edge:{currentSite.Url}");
+                Thread.Sleep(300);
+
+                thisProcess = ScreenTools.FindProcessByWindowTitle(currentSite.WindowTitle);
+
+                if (thisProcess != null)
+                {
+                    MoveWindow(thisProcess.MainWindowHandle,
+                        screen.Bounds.X,
+                        screen.Bounds.Y,
+                        screen.Bounds.Width,
+                        screen.Bounds.Height, true);
+                    
+                    SetForegroundWindow(thisProcess.MainWindowHandle);
+                    Thread.Sleep(300);
+                    SendKeys.SendWait("{F11}");
+                    Thread.Sleep(300);
+                    SetForegroundWindow(currentWindowHandle);
+                }
             }
+
+            // we need this to see if the screen has frozen
+            Bitmap lastScreenShot = null;
+
 
             // Let's do this!
             Console.WriteLine($"Started monitoring at {DateTime.Now.ToShortTimeString()}");
