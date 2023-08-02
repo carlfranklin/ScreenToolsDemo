@@ -1,0 +1,86 @@
+{
+  "ScreenIndex": 1,
+  "IntervalInSeconds": 5,
+  "Sites": [
+    {
+      "Name": "Dublin EarthCam",
+      "Url": "https://www.earthcam.com/world/ireland/dublin/?cam=templebar",
+      "WindowTitle": "EarthCam",
+      "Description": "A live webcam showing Temple Bar in Dublin",
+      "TextAreas": [
+        {
+          "Text": "Still Watching?",
+          "Bounds": "855, 615, 190, 60",
+          "ComparePngPath": "",
+          "ContrastAdjustment": 0,
+          "OnlyCheckIfFrozen": false,
+          "RotationDegrees": 0,
+          "Action": 1,
+          "KeysToSend": "",
+          "Hover": false,
+          "ClickCoordinates": "6080, 540"
+        },
+        {
+          "Text": "Nine",
+          "Bounds": "99, 32, 35, 64",
+          "ComparePngPath": "",
+          "ContrastAdjustment": 0,
+          "OnlyCheckIfFrozen": true,
+          "RotationDegrees": 90,
+          "Action": 2,
+          "KeysToSend": "{F5}",
+          "Hover": false,
+          "ClickCoordinates": "0, 0"
+        },
+        {
+          "Text": "Nine",
+          "Bounds": "99, 32, 35, 64",
+          "ComparePngPath": "",
+          "ContrastAdjustment": -50,
+          "OnlyCheckIfFrozen": true,
+          "RotationDegrees": 90,
+          "Action": 2,
+          "KeysToSend": "{F5}",
+          "Hover": false,
+          "ClickCoordinates": "0, 0"
+        },
+        {
+          "Text": "Dublin Cam",
+          "Bounds": "20, 940, 137, 31",
+          "ComparePngPath": "",
+          "ContrastAdjustment": 0,
+          "OnlyCheckIfFrozen": true,
+          "RotationDegrees": 0,
+          "Action": 2,
+          "KeysToSend": "{F5}",
+          "Hover": false,
+          "ClickCoordinates": "0, 0"
+        },
+        {
+          "Text": "",
+          "Bounds": "24, 967, 123, 88",
+          "ComparePngPath": "white.png",
+          "ContrastAdjustment": 0,
+          "OnlyCheckIfFrozen": false,
+          "RotationDegrees": 0,
+          "Action": 1,
+          "KeysToSend": "",
+          "Hover": true,
+          "ClickCoordinates": "6680, 760"
+        },
+        {
+          "Text": "Welcome to Dublin, Ireland",
+          "Bounds": "335, 805, 440, 265",
+          "ComparePngPath": "",
+          "ContrastAdjustment": 0,
+          "OnlyCheckIfFrozen": false,
+          "RotationDegrees": 0,
+          "Action": 1,
+          "KeysToSend": "",
+          "Hover": true,
+          "ClickCoordinates": "6680, 760"
+        }
+      ]
+    }
+  ]
+}

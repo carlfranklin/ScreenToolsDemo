@@ -8,6 +8,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Threading;
 using System.Diagnostics;
+using System.Windows.Forms;
 
 public static class ScreenTools
 {
@@ -16,6 +17,10 @@ public static class ScreenTools
 
     [DllImport("user32.dll")]
     static extern void mouse_event(int dwFlags, int dx, int dy, int dwData, int dwExtraInfo);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    static extern bool SetForegroundWindow(IntPtr hWnd);
 
     private const int MOUSEEVENTF_LEFTDOWN = 0x02;
     private const int MOUSEEVENTF_LEFTUP = 0x04;
@@ -27,6 +32,50 @@ public static class ScreenTools
     {
         public int X;
         public int Y;
+    }
+
+    public static void ProcessMatch(IntPtr browserWindowHandle, IntPtr currentWindowHandle, TextArea area)
+    {
+        // We have a match!
+        if (area.Action == UIAction.SendKeys)
+        {
+            // change to the browser
+            SetForegroundWindow(browserWindowHandle);
+
+            // wait .3 seconds
+            Thread.Sleep(300);
+
+            // send keys
+            SendKeys.SendWait(area.KeysToSend);
+
+            // reset the foreground window
+            SetForegroundWindow(currentWindowHandle);
+        }
+        else if (area.Action == UIAction.Click)
+        {
+            // get the current cursor position
+            var currentPoint = new POINT();
+            GetCursorPos(out currentPoint);
+
+            // change to the cursor position
+            SetCursorPos(area.ClickCoordinates.X, area.ClickCoordinates.Y);
+            if (area.Hover)
+            {
+                // move the mouse by 1 pixel
+                SetCursorPos(area.ClickCoordinates.X + 1, area.ClickCoordinates.Y + 1);
+                // wait one second
+                Thread.Sleep(1000);
+            }
+
+            // click 
+            ScreenTools.Click(area.ClickCoordinates.X, area.ClickCoordinates.Y);
+
+            // reset our cursor position to where we were
+            SetCursorPos(currentPoint.X, currentPoint.Y);
+
+            // reset the foreground window
+            SetForegroundWindow(currentWindowHandle);
+        }
     }
 
     public static Process FindProcessByWindowTitle(string title)
