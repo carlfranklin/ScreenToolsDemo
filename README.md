@@ -863,3 +863,131 @@ public static void Click(int x, int y)
 }
 ```
 
+**FindHighestContrastRectangle**:
+
+This function returns an area of a given size of a bitmap that has the highest contrast. This is not used in the demo, but can come in handy in certain scenarios to find text when you don't know where it is.
+
+```c#
+/// <summary>
+/// Returns an area of a given size of a bitmap that has the highest contrast
+/// </summary>
+/// <param name="bitmap">The Bitmap to examine</param>
+/// <param name="size">The size of the rectangle to examine and return</param>
+/// <param name="highestStdDev">THe highest standard deviation allowed</param>
+/// <returns></returns>
+public static Rectangle FindHighestContrastRectangle(Bitmap bitmap, Size size, double highestStdDev)
+{
+    Rectangle highestContrastRectangle = new Rectangle();
+
+    for (int x = 0; x <= bitmap.Width - size.Width; x += 40)
+    {
+        for (int y = 0; y <= 900; y += 20)
+        {
+            double stdDev = ComputeStandardDeviation(x, y, bitmap, size);
+            if (stdDev > highestStdDev)
+            {
+                highestStdDev = stdDev;
+                highestContrastRectangle = new Rectangle(x, y, size.Width, size.Height);
+            }
+        }
+    }
+
+    return highestContrastRectangle;
+}
+```
+
+**ComputeStandardDeviation**:
+
+Called by FindHighestContrastRectangle to compute standard deviation.
+
+```c#
+/// <summary>
+/// Helper method to compute standard deviation
+/// </summary>
+/// <param name="x">X coordinate</param>
+/// <param name="y">Y coordinate</param>
+/// <param name="bitmap">The Bitmap to examine</param>
+/// <param name="size">The Size inside the bitmap</param>
+/// <returns></returns>
+public static double ComputeStandardDeviation(int x, int y, Bitmap bitmap, Size size)
+{
+    int sum = 0, sumOfSquares = 0;
+    for (int i = x; i < x + size.Width; i++)
+    {
+        for (int j = y; j < y + size.Height; j++)
+        {
+            Color pixel = bitmap.GetPixel(i, j);
+			// Average to get grayscale
+            int pixelValue = (pixel.R + pixel.G + pixel.B) / 3; 
+
+            sum += pixelValue;
+            sumOfSquares += pixelValue * pixelValue;
+        }
+    }
+
+    int numPixels = size.Width * size.Height;
+    double mean = (double)sum / numPixels;
+    double variance = (double)sumOfSquares / numPixels - mean * mean;
+
+    return Math.Sqrt(variance); // Standard deviation
+}
+```
+
+**ProcessUIAction**:
+
+This method processes either a Click (with the hover feature) or a SendKeys action
+
+```c#
+/// <summary>
+/// Processes either a Click (with the hover feature) or a SendKeys action
+/// </summary>
+/// <param name="browserWindowHandle">The handle for the Edge Browser process</param>
+/// <param name="currentWindowHandle">The handle for the window that currently has focus</param>
+/// <param name="area"></param>
+public static void ProcessUIAction(IntPtr browserWindowHandle, TextArea area)
+{
+    IntPtr currentWindowHandle = GetForegroundWindow();
+
+    // We have a match!
+    if (area.Action == UIAction.SendKeys)
+    {
+        // change to the browser
+        SetForegroundWindow(browserWindowHandle);
+
+        // wait .3 seconds
+        Thread.Sleep(300);
+
+        // send keys
+        SendKeys.SendWait(area.KeysToSend);
+
+        // reset the foreground window
+        SetForegroundWindow(currentWindowHandle);
+    }
+    else if (area.Action == UIAction.Click)
+    {
+        // get the current cursor position
+        var currentPoint = new POINT();
+        GetCursorPos(out currentPoint);
+
+        // change to the cursor position
+        SetCursorPos(area.ClickCoordinates.X, area.ClickCoordinates.Y);
+        if (area.Hover)
+        {
+            // move the mouse by 1 pixel
+            SetCursorPos(area.ClickCoordinates.X + 1, area.ClickCoordinates.Y + 1);
+            // wait one second
+            Thread.Sleep(area.HoverMs);
+        }
+
+        // click 
+        ScreenTools.Click(area.ClickCoordinates.X, area.ClickCoordinates.Y);
+
+        // reset our cursor position to where we were
+        SetCursorPos(currentPoint.X, currentPoint.Y);
+
+        // reset the foreground window
+        SetForegroundWindow(currentWindowHandle);
+    }
+}
+```
+
