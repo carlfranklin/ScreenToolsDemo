@@ -1,8 +1,10 @@
 # Screen Tools Demo
 
-This is a demo of using a .NET Framework C# class of utilities to automate screen interactions.
+This is a demo of using **ScreenToolsLib**, a .NET Framework C# library used to automate screen interactions.
 
 The demo looks for "Still Watching?" on a streaming webcam website in a full-screen browser, and clicks on the screen when necessary. It also looks to see if the site has frozen and presses F5 to restart it. Also, if the webcam page goes out of full-screen mode, it clicks the "full-screen" button.
+
+To see a video demonstrating **ScreenToolsLib**, check out [The .NET Show Episode 47](https://youtube.com/live/RgpVqlNwCNc?feature=share)
 
 To use the ScreenTools in a .NET Framework Console App, follow these steps.
 
@@ -193,7 +195,7 @@ namespace ScreenToolsDemo
                     int ScreenIndex = 0;
                     int index = 0;
 
-                    Console.WriteLine("Please select a secreen where the webcam browser will be shown:");
+                    Console.WriteLine("Please select a screen where the webcam browser will be shown:");
                     Console.WriteLine();
                     foreach (var scr in Screen.AllScreens)
                     {
@@ -975,7 +977,7 @@ public static void ProcessUIAction(IntPtr browserWindowHandle, TextArea area)
         {
             // move the mouse by 1 pixel
             SetCursorPos(area.ClickCoordinates.X + 1, area.ClickCoordinates.Y + 1);
-            // wait one second
+            // wait
             Thread.Sleep(area.HoverMs);
         }
 

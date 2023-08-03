@@ -196,7 +196,7 @@ namespace ScreenToolsLib
                 {
                     // move the mouse by 1 pixel
                     SetCursorPos(area.ClickCoordinates.X + 1, area.ClickCoordinates.Y + 1);
-                    // wait one second
+                    // wait 
                     Thread.Sleep(area.HoverMs);
                 }
 
@@ -355,7 +355,8 @@ namespace ScreenToolsLib
         /// <param name="size">The size of the rectangle to examine and return</param>
         /// <param name="highestStdDev">THe highest standard deviation allowed</param>
         /// <returns></returns>
-        public static Rectangle FindHighestContrastRectangle(Bitmap bitmap, Size size, double highestStdDev)
+        public static Rectangle FindHighestContrastRectangle(Bitmap bitmap, Size size, 
+            double highestStdDev)
         {
             Rectangle highestContrastRectangle = new Rectangle();
 
