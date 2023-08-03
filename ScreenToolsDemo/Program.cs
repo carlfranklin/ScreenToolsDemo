@@ -17,7 +17,6 @@ namespace ScreenToolsDemo
             //
             // To test it, you need to load the following url in a browser window:
             // https://www.earthcam.com/world/ireland/dublin/?cam=templebar
-            // You also need to press F11 to run browser in kiosk mode.
 
             Settings settings = null;
 

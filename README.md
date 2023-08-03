@@ -4,7 +4,9 @@ This is a demo of using a .NET Framework C# class of utilities to automate scree
 
 The demo looks for "Still Watching?" on a streaming webcam website in a full-screen browser, and clicks on the screen when necessary. It also looks to see if the site has frozen and presses F5 to restart it. Also, if the webcam page goes out of full-screen mode, it clicks the "full-screen" button.
 
-To use the ScreenTools in a .NET Framework Console App, follow these steps
+To use the ScreenTools in a .NET Framework Console App, follow these steps.
+
+Add the NuGet Package `Newtonsoft.Json` to the project.
 
 Add references to the following assemblies by right-clicking the project and selecting **Add**, **Reference**, and clicking the **Assemblies** tab. These assemblies are part of the .NET Framework, and you must add references to them in order to use them.
 
@@ -144,6 +146,10 @@ The easiest way to learn how to use **ScreenToolsLib** is to look at the demo *P
 
 The demo looks for *Settings.json*. If it's there, it will be loaded and deserialized, otherwise the demo code will create the `Settings` object, serialize it, and save it to *Settings.json*.
 
+Read the comments where the `TextArea` objects are being created. The demo controls a webcam website, reacting to situations where the webcam pauses or freezes, keeping it going while the demo is running.
+
+> :point_up: **Note**: This demo does not condone manipulating websites with actions that may be prohibited by the website's license and/or usage agreement(s). Please use this demo for demonstration purposes only.
+
 *Program.cs*:
 
 ```c#
@@ -166,7 +172,6 @@ namespace ScreenToolsDemo
             //
             // To test it, you need to load the following url in a browser window:
             // https://www.earthcam.com/world/ireland/dublin/?cam=templebar
-            // You also need to press F11 to run browser in kiosk mode.
 
             Settings settings = null;
 
@@ -319,6 +324,103 @@ namespace ScreenToolsDemo
             ScreenTools.Automate(settings);
         }
     }
+}
+```
+
+This is the resulting *Settings.json* file:
+
+```json
+{
+  "ScreenIndex": 1,
+  "IntervalInSeconds": 5,
+  "Sites": [
+    {
+      "Name": "Dublin EarthCam",
+      "Url": "https://www.earthcam.com/world/ireland/dublin/?cam=templebar",
+      "WindowTitle": "EarthCam",
+      "Description": "A live webcam showing Temple Bar in Dublin",
+      "TextAreas": [
+        {
+          "Text": "Still Watching?",
+          "Bounds": "855, 615, 190, 60",
+          "ComparePngPath": "",
+          "ContrastAdjustment": 0,
+          "OnlyCheckIfFrozen": false,
+          "RotationDegrees": 0,
+          "Action": 1,
+          "KeysToSend": "",
+          "Hover": false,
+          "HoverMS": 0,
+          "ClickCoordinates": "6080, 540"
+        },
+        {
+          "Text": "Nine",
+          "Bounds": "99, 32, 35, 64",
+          "ComparePngPath": "",
+          "ContrastAdjustment": 0,
+          "OnlyCheckIfFrozen": true,
+          "RotationDegrees": 90,
+          "Action": 2,
+          "KeysToSend": "{F5}",
+          "Hover": false,
+          "HoverMS": 0,
+          "ClickCoordinates": "0, 0"
+        },
+        {
+          "Text": "Nine",
+          "Bounds": "99, 32, 35, 64",
+          "ComparePngPath": "",
+          "ContrastAdjustment": -50,
+          "OnlyCheckIfFrozen": true,
+          "RotationDegrees": 90,
+          "Action": 2,
+          "KeysToSend": "{F5}",
+          "Hover": false,
+          "HoverMS": 0,
+          "ClickCoordinates": "0, 0"
+        },
+        {
+          "Text": "Dublin Cam",
+          "Bounds": "20, 940, 137, 31",
+          "ComparePngPath": "",
+          "ContrastAdjustment": 0,
+          "OnlyCheckIfFrozen": true,
+          "RotationDegrees": 0,
+          "Action": 2,
+          "KeysToSend": "{F5}",
+          "Hover": false,
+          "HoverMS": 0,
+          "ClickCoordinates": "0, 0"
+        },
+        {
+          "Text": "",
+          "Bounds": "24, 967, 123, 88",
+          "ComparePngPath": "white.png",
+          "ContrastAdjustment": 0,
+          "OnlyCheckIfFrozen": false,
+          "RotationDegrees": 0,
+          "Action": 1,
+          "KeysToSend": "",
+          "Hover": true,
+          "HoverMS": 1000,
+          "ClickCoordinates": "6680, 760"
+        },
+        {
+          "Text": "Welcome to Dublin, Ireland",
+          "Bounds": "335, 805, 440, 265",
+          "ComparePngPath": "",
+          "ContrastAdjustment": 0,
+          "OnlyCheckIfFrozen": false,
+          "RotationDegrees": 0,
+          "Action": 1,
+          "KeysToSend": "",
+          "Hover": true,
+          "HoverMS": 1000,
+          "ClickCoordinates": "6680, 760"
+        }
+      ]
+    }
+  ]
 }
 ```
 
