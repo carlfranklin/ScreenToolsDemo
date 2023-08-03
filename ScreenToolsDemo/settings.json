@@ -18,6 +18,7 @@
           "Action": 1,
           "KeysToSend": "",
           "Hover": false,
+          "HoverMS": 0,
           "ClickCoordinates": "6080, 540"
         },
         {
@@ -30,6 +31,7 @@
           "Action": 2,
           "KeysToSend": "{F5}",
           "Hover": false,
+          "HoverMS": 0,
           "ClickCoordinates": "0, 0"
         },
         {
@@ -42,6 +44,7 @@
           "Action": 2,
           "KeysToSend": "{F5}",
           "Hover": false,
+          "HoverMS": 0,
           "ClickCoordinates": "0, 0"
         },
         {
@@ -54,6 +57,7 @@
           "Action": 2,
           "KeysToSend": "{F5}",
           "Hover": false,
+          "HoverMS": 0,
           "ClickCoordinates": "0, 0"
         },
         {
@@ -66,6 +70,7 @@
           "Action": 1,
           "KeysToSend": "",
           "Hover": true,
+          "HoverMS": 1000,
           "ClickCoordinates": "6680, 760"
         },
         {
@@ -78,6 +83,7 @@
           "Action": 1,
           "KeysToSend": "",
           "Hover": true,
+          "HoverMS": 0,
           "ClickCoordinates": "6680, 760"
         }
       ]

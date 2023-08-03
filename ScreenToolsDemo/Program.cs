@@ -7,34 +7,12 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using ScreenToolsLib;
 
 namespace ScreenToolsDemo
 {
     internal class Program
     {
-        [DllImport("user32.dll")]
-        static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool SetForegroundWindow(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        static extern bool SetCursorPos(int X, int Y);
-
-        [DllImport("user32.dll")]
-        static extern bool GetCursorPos(out POINT lpPoint);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
-
-
-        public struct POINT
-        {
-            public int X;
-            public int Y;
-        }
-
         static void Main(string[] args)
         {
             // This demo controls a web browser that takes up the entire
@@ -45,12 +23,6 @@ namespace ScreenToolsDemo
             // You also need to press F11 to run browser in kiosk mode.
 
             Settings settings = null;
-            Site currentSite = null;
-            Screen screen = null;
-            int ScreenIndex = 0;
-
-            // get the current window handle
-            var currentWindowHandle = GetForegroundWindow();
 
             // This code checks for a settings file and creates one if it's not there
             var settingsFilePath = $"{Environment.CurrentDirectory}\\settings.json";
@@ -66,8 +38,11 @@ namespace ScreenToolsDemo
                 while (true)
                 {
                     // Ask the user to pick a screen for the webcam
-
+                    Site currentSite = null;
+                    Screen screen = null;
+                    int ScreenIndex = 0;
                     int index = 0;
+
                     Console.WriteLine("Please select a secreen where the webcam browser will be shown:");
                     Console.WriteLine();
                     foreach (var scr in Screen.AllScreens)
@@ -150,6 +125,7 @@ namespace ScreenToolsDemo
                         textArea5.ComparePngPath = $"{Environment.CurrentDirectory}\\white.png";
                         textArea5.Action = UIAction.Click;
                         textArea5.Hover = true; // Hover over the coordinates before clicking
+                        textArea5.HoverMs = 1000;   // Hover for 1 second
                         textArea5.ClickCoordinates = new Point()
                         {
                             X = screen.Bounds.X + 1560,
@@ -163,6 +139,7 @@ namespace ScreenToolsDemo
                         textArea6.Text = "Welcome to Dublin, Ireland";
                         textArea6.Action = UIAction.Click;
                         textArea6.Hover = true; // Hover over the coordinates before clicking
+                        textArea6.HoverMs = 1000;   // Hover for 1 second
                         textArea6.ClickCoordinates = new Point()
                         {
                             X = screen.Bounds.X + 1560,
@@ -188,132 +165,9 @@ namespace ScreenToolsDemo
                 // Settings file found. Read the ScreenIndex
                 var json = File.ReadAllText(settingsFilePath);
                 settings = JsonConvert.DeserializeObject<Settings>(json);
-                currentSite = settings.Sites[0];
-                ScreenIndex = settings.ScreenIndex;
-                screen = Screen.AllScreens[ScreenIndex];
             }
 
-            // we need the process, so we can get the window handle
-            Process thisProcess = ScreenTools.FindProcessByWindowTitle(currentSite.WindowTitle);
-
-            // bail if we can't find the process.
-            if (thisProcess == null)
-            {
-                // start the process
-                var edge = new Process();
-                edge.StartInfo.WindowStyle = ProcessWindowStyle.Maximized;
-                Process.Start($"microsoft-edge:{currentSite.Url}");
-                Thread.Sleep(300);
-
-                thisProcess = ScreenTools.FindProcessByWindowTitle(currentSite.WindowTitle);
-
-                if (thisProcess != null)
-                {
-                    MoveWindow(thisProcess.MainWindowHandle,
-                        screen.Bounds.X,
-                        screen.Bounds.Y,
-                        screen.Bounds.Width,
-                        screen.Bounds.Height, true);
-                    
-                    SetForegroundWindow(thisProcess.MainWindowHandle);
-                        Thread.Sleep(300);
-                        SendKeys.SendWait("{F11}");
-                        Thread.Sleep(300);
-                    SetForegroundWindow(currentWindowHandle);
-                }
-            }
-
-            // we need this to see if the screen has frozen
-            Bitmap lastScreenShot = null;
-
-
-            // Let's do this!
-            Console.WriteLine($"Started monitoring at {DateTime.Now.ToShortTimeString()}");
-
-            // automate!
-            while (!Console.KeyAvailable)
-            {
-                Thread.Sleep(1000 * settings.IntervalInSeconds);
-
-                // create a bitmap the size of the entire screen
-                using (Bitmap bitmap = new Bitmap(screen.Bounds.Width,
-                    screen.Bounds.Height))
-                {
-                    // create a new graphics object from the bitmap
-                    using (Graphics graphics = Graphics.FromImage(bitmap))
-                    {
-                        try
-                        {
-
-                            // take the screenshot (entire screen)
-                            graphics.CopyFromScreen(screen.Bounds.Location, Point.Empty,
-                                screen.Bounds.Size);
-
-                            foreach (var area in currentSite.TextAreas)
-                            {
-                                if (area.OnlyCheckIfFrozen)
-                                {
-                                    if (lastScreenShot == null)
-                                    {
-                                        continue;
-                                    }
-
-                                    // is this the same as the last screen shot?
-                                    if (!ScreenTools.BitmapsAreEqual(bitmap, lastScreenShot))
-                                    {
-                                        continue;
-                                    }
-                                }
-
-                                // crop 
-                                var cropped = ScreenTools.CropBitmap(bitmap, area.Bounds);
-
-                                // rotate?
-                                if (area.RotationDegrees == 90)
-                                {
-                                    cropped = ScreenTools.RotateImageRight90Degrees(cropped);
-                                }
-
-                                // contrast?
-                                if (area.ContrastAdjustment != 0)
-                                {
-                                    cropped = ScreenTools.AdjustContrast(cropped, area.ContrastAdjustment);
-                                }
-
-                                // compare png?
-                                if (area.Text == string.Empty && area.ComparePngPath != string.Empty)
-                                {
-                                    // load bitmap
-                                    var patch = new Bitmap(area.ComparePngPath);
-
-                                    // compare
-                                    if (ScreenTools.BitmapsAreEqual(cropped, patch))
-                                    {
-                                        ScreenTools.ProcessMatch(thisProcess.MainWindowHandle, currentWindowHandle, area);
-                                    }
-                                }
-                                else
-                                {
-                                    // get text
-                                    var text = ScreenTools.GetTextInArea(cropped);
-                                    if (text.ToLower() == area.Text.ToLower())
-                                    {
-                                        ScreenTools.ProcessMatch(thisProcess.MainWindowHandle, currentWindowHandle, area);
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception ex) 
-                        {
-                            // Sometimes you'll get an exception that you can ignore until the next iteration.
-                        }
-                    }
-
-                    // save the bitmap
-                    lastScreenShot = (Bitmap)bitmap.Clone();
-                }
-            }
-
+            ScreenTools.Automate(settings);
         }
     }
 }
