@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using System.Threading;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -34,11 +31,10 @@ namespace ScreenToolsDemo
 
             if (!File.Exists(settingsFilePath))
             {
-                // Settings file is not there.
+                // Settings file is not there. Create a Settings file with the demo data
                 while (true)
                 {
-                    // Ask the user to pick a screen for the webcam
-                    Site currentSite = null;
+                    // Ask the user to pick a screen for the webcam saite
                     Screen screen = null;
                     int ScreenIndex = 0;
                     int index = 0;
@@ -72,8 +68,11 @@ namespace ScreenToolsDemo
 
                         // this can be a partial string, used to identify the process
                         site.WindowTitle = "EarthCam";
+
+                        // these are just for documentation purposes, and are not used by ScreenToolsLib
                         site.Description = "A live webcam showing Temple Bar in Dublin";
                         site.Name = "Dublin EarthCam";
+
                         site.Url = "https://www.earthcam.com/world/ireland/dublin/?cam=templebar";
 
                         // Create the rectangle for "Still Watching?"
@@ -120,12 +119,14 @@ namespace ScreenToolsDemo
                         site.TextAreas.Add(textArea4);
 
                         // Look for a specific png in a specific area
+                        // This can happen if the webcam goes out of full-screen mode
                         var textArea5 = new TextArea();
                         textArea5.Bounds = new Rectangle(24, 967, 123, 88);
                         textArea5.ComparePngPath = $"{Environment.CurrentDirectory}\\white.png";
                         textArea5.Action = UIAction.Click;
-                        textArea5.Hover = true; // Hover over the coordinates before clicking
+                        textArea5.Hover = true;     // Hover over the coordinates before clicking
                         textArea5.HoverMs = 1000;   // Hover for 1 second
+                                                    // This shows the control bar at the bottom
                         textArea5.ClickCoordinates = new Point()
                         {
                             X = screen.Bounds.X + 1560,
@@ -138,8 +139,9 @@ namespace ScreenToolsDemo
                         textArea6.Bounds = new Rectangle(335, 805, 440, 265);
                         textArea6.Text = "Welcome to Dublin, Ireland";
                         textArea6.Action = UIAction.Click;
-                        textArea6.Hover = true; // Hover over the coordinates before clicking
+                        textArea6.Hover = true;     // Hover over the coordinates before clicking
                         textArea6.HoverMs = 1000;   // Hover for 1 second
+                                                    // This shows the control bar at the bottom
                         textArea6.ClickCoordinates = new Point()
                         {
                             X = screen.Bounds.X + 1560,
@@ -147,11 +149,8 @@ namespace ScreenToolsDemo
                         };
                         site.TextAreas.Add(textArea6);
 
-                        // Add the sites
+                        // Add the site
                         settings.Sites.Add(site);
-
-                        // set the site
-                        currentSite = site;
 
                         // Save the file
                         var json = JsonConvert.SerializeObject(settings);
@@ -162,11 +161,12 @@ namespace ScreenToolsDemo
             }
             else
             {
-                // Settings file found. Read the ScreenIndex
+                // Settings file found. Read it and deserialize
                 var json = File.ReadAllText(settingsFilePath);
                 settings = JsonConvert.DeserializeObject<Settings>(json);
             }
 
+            // Run the automation
             ScreenTools.Automate(settings);
         }
     }

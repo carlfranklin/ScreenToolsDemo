@@ -83,7 +83,7 @@
           "Action": 1,
           "KeysToSend": "",
           "Hover": true,
-          "HoverMS": 0,
+          "HoverMS": 1000,
           "ClickCoordinates": "6680, 760"
         }
       ]
