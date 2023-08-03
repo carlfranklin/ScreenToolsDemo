@@ -49,18 +49,19 @@ namespace ScreenToolsLib
             // we need this to see if the screen has frozen
             Bitmap lastScreenShot = null;
 
+            // get a reference to the screen
             var screen = Screen.AllScreens[settings.ScreenIndex];
 
+            // pull out the first (and only) site
             var site = settings.Sites[0];
 
-            var currentWindowHandle = GetForegroundWindow();
-
-            // Let's do this!
+            // let's do this!
             Console.WriteLine($"Started monitoring at {DateTime.Now.ToShortTimeString()}");
 
             // automate!
             while (!Console.KeyAvailable)
             {
+                // Pause
                 Thread.Sleep(1000 * settings.IntervalInSeconds);
 
                 // create a bitmap the size of the entire screen
@@ -72,7 +73,6 @@ namespace ScreenToolsLib
                     {
                         try
                         {
-
                             // take the screenshot (entire screen)
                             graphics.CopyFromScreen(screen.Bounds.Location, Point.Empty,
                                 screen.Bounds.Size);
@@ -102,13 +102,16 @@ namespace ScreenToolsLib
                                     switch (area.RotationDegrees)
                                     {
                                         case 90:
-                                            cropped = RotateImage(cropped, RotateFlipType.Rotate90FlipNone);
+                                            cropped = RotateBitmap(cropped, 
+                                                RotateFlipType.Rotate90FlipNone);
                                             break;
                                         case 180:
-                                            cropped = RotateImage(cropped, RotateFlipType.Rotate180FlipNone);
+                                            cropped = RotateBitmap(cropped, 
+                                                RotateFlipType.Rotate180FlipNone);
                                             break;
                                         case 270:
-                                            cropped = RotateImage(cropped, RotateFlipType.Rotate270FlipNone);
+                                            cropped = RotateBitmap(cropped, 
+                                                RotateFlipType.Rotate270FlipNone);
                                             break;
                                     }
                                 }
@@ -120,7 +123,8 @@ namespace ScreenToolsLib
                                 }
 
                                 // compare png?
-                                if (area.Text == string.Empty && area.ComparePngPath != string.Empty)
+                                if (area.Text == string.Empty && area.ComparePngPath 
+                                    != string.Empty)
                                 {
                                     // load bitmap
                                     var patch = new Bitmap(area.ComparePngPath);
@@ -128,23 +132,24 @@ namespace ScreenToolsLib
                                     // compare
                                     if (BitmapsAreEqual(cropped, patch))
                                     {
-                                        ProcessMatch(thisProcess.MainWindowHandle, currentWindowHandle, area);
+                                        ProcessUIAction(thisProcess.MainWindowHandle, area);
                                     }
                                 }
                                 else
                                 {
                                     // get text
-                                    var text = GetTextInArea(cropped);
+                                    var text = GetText(cropped);
                                     if (text.ToLower() == area.Text.ToLower())
                                     {
-                                        ProcessMatch(thisProcess.MainWindowHandle, currentWindowHandle, area);
+                                        ProcessUIAction(thisProcess.MainWindowHandle, area);
                                     }
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            // Sometimes you'll get an exception that you can ignore until the next iteration.
+                            // Sometimes you'll get an exception
+                            // that you can ignore until the next iteration.
                         }
                     }
 
@@ -154,8 +159,16 @@ namespace ScreenToolsLib
             }
         }
 
-        public static void ProcessMatch(IntPtr browserWindowHandle, IntPtr currentWindowHandle, TextArea area)
+        /// <summary>
+        /// Processes either a Click (with the hover feature) or a SendKeys action
+        /// </summary>
+        /// <param name="browserWindowHandle">The handle for the Edge Browser process</param>
+        /// <param name="currentWindowHandle">The handle for the window that currently has focus</param>
+        /// <param name="area"></param>
+        public static void ProcessUIAction(IntPtr browserWindowHandle, TextArea area)
         {
+            IntPtr currentWindowHandle = GetForegroundWindow();
+
             // We have a match!
             if (area.Action == UIAction.SendKeys)
             {
@@ -198,6 +211,13 @@ namespace ScreenToolsLib
             }
         }
 
+        /// <summary>
+        /// High-level method to look for the site in Microsoft Edge.
+        /// If it's not found it is loaded, moved to the given screen index,
+        /// and run in kiosk mode {F11}
+        /// </summary>
+        /// <param name="settings">Settings file defined by the user</param>
+        /// <returns></returns>
         public static Process LoadOrFindBrowser(Settings settings)
         {
             // get the current window handle
@@ -241,7 +261,11 @@ namespace ScreenToolsLib
             return thisProcess;
         }
 
-
+        /// <summary>
+        /// Returns a running process (or null) given a partial window title
+        /// </summary>
+        /// <param name="title">Partial text for the Window title</param>
+        /// <returns></returns>
         public static Process FindProcessByWindowTitle(string title)
         {
             // get the list of processes
@@ -250,8 +274,9 @@ namespace ScreenToolsLib
             // look for the one with the text
             foreach (Process process in processlist)
             {
-                if (!String.IsNullOrEmpty(process.MainWindowTitle))
+                if (!string.IsNullOrEmpty(process.MainWindowTitle))
                 {
+                    // case-insensitive partial search
                     if (process.MainWindowTitle.ToLower().Contains(title.ToLower().Trim()))
                     {
                         // found it!
@@ -265,12 +290,11 @@ namespace ScreenToolsLib
 
 
         /// <summary>
-        /// Uses IronOcr to read text in an area of a bitmap
+        /// Uses Tesseract to read text in a bitmap
         /// </summary>
-        /// <param name="bitmap"></param>
-        /// <param name="rect"></param>
+        /// <param name="bitmap">The Bitmap to read from</param>
         /// <returns></returns>
-        public static string GetTextInArea(Bitmap bitmap)
+        public static string GetText(Bitmap bitmap)
         {
             string text = string.Empty;
 
@@ -280,7 +304,8 @@ namespace ScreenToolsLib
 
             try
             {
-                using (var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default))
+                using (var engine = new TesseractEngine(@"./tessdata", 
+                    "eng", EngineMode.Default))
                 {
                     using (var img = Pix.LoadFromFile(tempFile))
                     {
@@ -303,9 +328,9 @@ namespace ScreenToolsLib
         /// <summary>
         /// Rotates an image
         /// </summary>
-        /// <param name="bitmap"></param>
+        /// <param name="bitmap">The image to rotate</param>
         /// <returns></returns>
-        public static Bitmap RotateImage(Bitmap bitmap, RotateFlipType rotation)
+        public static Bitmap RotateBitmap(Bitmap bitmap, RotateFlipType rotation)
         {
             var bmp = (Bitmap)bitmap.Clone();
             bmp.RotateFlip(rotation);
@@ -315,8 +340,8 @@ namespace ScreenToolsLib
         /// <summary>
         /// Returns a cropped version of a bitmap
         /// </summary>
-        /// <param name="bitmap"></param>
-        /// <param name="rect"></param>
+        /// <param name="bitmap">The Bitmap to crop</param>
+        /// <param name="rect">The rectangle to crop the Bitmap to</param>
         /// <returns></returns>
         public static Bitmap CropBitmap(Bitmap bitmap, Rectangle rect)
         {
@@ -326,9 +351,9 @@ namespace ScreenToolsLib
         /// <summary>
         /// Returns an area of a given size of a bitmap that has the highest contrast
         /// </summary>
-        /// <param name="bitmap"></param>
-        /// <param name="size"></param>
-        /// <param name="highestStdDev"></param>
+        /// <param name="bitmap">The Bitmap to examine</param>
+        /// <param name="size">The size of the rectangle to examine and return</param>
+        /// <param name="highestStdDev">THe highest standard deviation allowed</param>
         /// <returns></returns>
         public static Rectangle FindHighestContrastRectangle(Bitmap bitmap, Size size, double highestStdDev)
         {
@@ -353,8 +378,8 @@ namespace ScreenToolsLib
         /// <summary>
         /// Returns whether two bitmaps are equal
         /// </summary>
-        /// <param name="bitmap1"></param>
-        /// <param name="bitmap2"></param>
+        /// <param name="bitmap1">The first Bitmap to compare</param>
+        /// <param name="bitmap2">The second Bitmap to compare</param>
         /// <returns></returns>
         public static bool BitmapsAreEqual(Bitmap bitmap1, Bitmap bitmap2)
         {
@@ -394,10 +419,10 @@ namespace ScreenToolsLib
         /// <summary>
         /// Helper method to compute standard deviation
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="bitmap"></param>
-        /// <param name="size"></param>
+        /// <param name="x">X coordinate</param>
+        /// <param name="y">Y coordinate</param>
+        /// <param name="bitmap">The Bitmap to examine</param>
+        /// <param name="size">The Size inside the bitmap</param>
         /// <returns></returns>
         public static double ComputeStandardDeviation(int x, int y, Bitmap bitmap, Size size)
         {
@@ -407,7 +432,8 @@ namespace ScreenToolsLib
                 for (int j = y; j < y + size.Height; j++)
                 {
                     Color pixel = bitmap.GetPixel(i, j);
-                    int pixelValue = (pixel.R + pixel.G + pixel.B) / 3; // Average to get grayscale
+                    // Average to get grayscale
+                    int pixelValue = (pixel.R + pixel.G + pixel.B) / 3;
 
                     sum += pixelValue;
                     sumOfSquares += pixelValue * pixelValue;
@@ -424,8 +450,8 @@ namespace ScreenToolsLib
         /// <summary>
         /// Clicks the mouse at a given coordinate
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
+        /// <param name="x">X coordinate</param>
+        /// <param name="y">Y coordinate</param>
         public static void Click(int x, int y)
         {
             // get the current mouse position
@@ -444,9 +470,9 @@ namespace ScreenToolsLib
         }
 
         /// <summary>
-        /// returns a bitmap with adjusted contrast.
+        /// Returns a bitmap with adjusted contrast.
         /// </summary>
-        /// <param name="image"></param>
+        /// <param name="image">the Bitmap to adjust</param>
         /// <param name="value">Positive for higher contrast. Negative for lower contrast</param>
         /// <returns></returns>
         public static Bitmap AdjustContrast(Bitmap image, float value)
@@ -462,12 +488,14 @@ namespace ScreenToolsLib
             };
 
             var attributes = new ImageAttributes();
-            attributes.SetColorMatrix(new ColorMatrix(contrastMatrix), ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+            attributes.SetColorMatrix(new ColorMatrix(contrastMatrix), 
+                ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
 
             var newImage = new Bitmap(image.Width, image.Height);
             using (var g = Graphics.FromImage(newImage))
             {
-                g.DrawImage(image, new Rectangle(0, 0, image.Width, image.Height), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
+                g.DrawImage(image, new Rectangle(0, 0, image.Width, image.Height), 0, 0, 
+                    image.Width, image.Height, GraphicsUnit.Pixel, attributes);
             }
 
             return newImage;
