@@ -23,9 +23,6 @@ namespace ScreenToolsLib
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool SetForegroundWindow(IntPtr hWnd);
 
-        private const int MOUSEEVENTF_LEFTDOWN = 0x02;
-        private const int MOUSEEVENTF_LEFTUP = 0x04;
-
         [DllImport("user32.dll")]
         public static extern bool GetCursorPos(out POINT lpPoint);
 
@@ -35,6 +32,8 @@ namespace ScreenToolsLib
         [DllImport("user32.dll", SetLastError = true)]
         static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
 
+        private const int MOUSEEVENTF_LEFTDOWN = 0x02;
+        private const int MOUSEEVENTF_LEFTUP = 0x04;
 
         public struct POINT
         {
@@ -98,9 +97,20 @@ namespace ScreenToolsLib
                                 var cropped = CropBitmap(bitmap, area.Bounds);
 
                                 // rotate?
-                                if (area.RotationDegrees == 90)
+                                if (area.RotationDegrees != 0)
                                 {
-                                    cropped = RotateImageRight90Degrees(cropped);
+                                    switch (area.RotationDegrees)
+                                    {
+                                        case 90:
+                                            cropped = RotateImage(cropped, RotateFlipType.Rotate90FlipNone);
+                                            break;
+                                        case 180:
+                                            cropped = RotateImage(cropped, RotateFlipType.Rotate180FlipNone);
+                                            break;
+                                        case 270:
+                                            cropped = RotateImage(cropped, RotateFlipType.Rotate270FlipNone);
+                                            break;
+                                    }
                                 }
 
                                 // contrast?
@@ -290,10 +300,15 @@ namespace ScreenToolsLib
             return text;
         }
 
-        public static Bitmap RotateImageRight90Degrees(Bitmap bitmap)
+        /// <summary>
+        /// Rotates an image
+        /// </summary>
+        /// <param name="bitmap"></param>
+        /// <returns></returns>
+        public static Bitmap RotateImage(Bitmap bitmap, RotateFlipType rotation)
         {
             var bmp = (Bitmap)bitmap.Clone();
-            bmp.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            bmp.RotateFlip(rotation);
             return bmp;
         }
 
