@@ -89,6 +89,7 @@ namespace ScreenToolsLib
                                     // is this the same as the last screen shot?
                                     if (!BitmapsAreEqual(bitmap, lastScreenShot))
                                     {
+                                        lastScreenShot.Dispose();
                                         continue;
                                     }
                                 }
@@ -99,19 +100,26 @@ namespace ScreenToolsLib
                                 // rotate?
                                 if (area.RotationDegrees != 0)
                                 {
+                                    Bitmap rotated = null;
                                     switch (area.RotationDegrees)
                                     {
                                         case 90:
-                                            cropped = RotateBitmap(cropped, 
+                                            rotated = RotateBitmap(cropped, 
                                                 RotateFlipType.Rotate90FlipNone);
+                                            cropped.Dispose();
+                                            cropped = rotated;
                                             break;
                                         case 180:
-                                            cropped = RotateBitmap(cropped, 
+                                            rotated = RotateBitmap(cropped, 
                                                 RotateFlipType.Rotate180FlipNone);
+                                            cropped.Dispose();
+                                            cropped = rotated;
                                             break;
                                         case 270:
-                                            cropped = RotateBitmap(cropped, 
+                                            rotated = RotateBitmap(cropped, 
                                                 RotateFlipType.Rotate270FlipNone);
+                                            cropped.Dispose();
+                                            cropped = rotated;
                                             break;
                                     }
                                 }
@@ -119,7 +127,9 @@ namespace ScreenToolsLib
                                 // contrast?
                                 if (area.ContrastAdjustment != 0)
                                 {
-                                    cropped = AdjustContrast(cropped, area.ContrastAdjustment);
+                                    var adjusted = AdjustContrast(cropped, area.ContrastAdjustment);
+                                    cropped.Dispose();
+                                    cropped = adjusted;
                                 }
 
                                 // compare png?
@@ -144,6 +154,7 @@ namespace ScreenToolsLib
                                         ProcessUIAction(thisProcess.MainWindowHandle, area);
                                     }
                                 }
+                                cropped.Dispose();
                             }
                         }
                         catch (Exception ex)
