@@ -89,7 +89,6 @@ namespace ScreenToolsLib
                                     // is this the same as the last screen shot?
                                     if (!BitmapsAreEqual(bitmap, lastScreenShot))
                                     {
-                                        lastScreenShot.Dispose();
                                         continue;
                                     }
                                 }
@@ -104,19 +103,19 @@ namespace ScreenToolsLib
                                     switch (area.RotationDegrees)
                                     {
                                         case 90:
-                                            rotated = RotateBitmap(cropped, 
+                                            rotated = RotateBitmap(cropped,
                                                 RotateFlipType.Rotate90FlipNone);
                                             cropped.Dispose();
                                             cropped = rotated;
                                             break;
                                         case 180:
-                                            rotated = RotateBitmap(cropped, 
+                                            rotated = RotateBitmap(cropped,
                                                 RotateFlipType.Rotate180FlipNone);
                                             cropped.Dispose();
                                             cropped = rotated;
                                             break;
                                         case 270:
-                                            rotated = RotateBitmap(cropped, 
+                                            rotated = RotateBitmap(cropped,
                                                 RotateFlipType.Rotate270FlipNone);
                                             cropped.Dispose();
                                             cropped = rotated;
@@ -133,7 +132,7 @@ namespace ScreenToolsLib
                                 }
 
                                 // compare png?
-                                if (area.Text == string.Empty && area.ComparePngPath 
+                                if (area.Text == string.Empty && area.ComparePngPath
                                     != string.Empty)
                                 {
                                     // load bitmap
@@ -163,6 +162,10 @@ namespace ScreenToolsLib
                             // that you can ignore until the next iteration.
                         }
                     }
+
+                    // Dispose the last screen shot because we are going to reassign it
+                    if (lastScreenShot != null)
+                        lastScreenShot.Dispose();
 
                     // save the bitmap
                     lastScreenShot = (Bitmap)bitmap.Clone();
@@ -315,7 +318,7 @@ namespace ScreenToolsLib
 
             try
             {
-                using (var engine = new TesseractEngine(@"./tessdata", 
+                using (var engine = new TesseractEngine(@"./tessdata",
                     "eng", EngineMode.Default))
                 {
                     using (var img = Pix.LoadFromFile(tempFile))
@@ -366,7 +369,7 @@ namespace ScreenToolsLib
         /// <param name="size">The size of the rectangle to examine and return</param>
         /// <param name="highestStdDev">THe highest standard deviation allowed</param>
         /// <returns></returns>
-        public static Rectangle FindHighestContrastRectangle(Bitmap bitmap, Size size, 
+        public static Rectangle FindHighestContrastRectangle(Bitmap bitmap, Size size,
             double highestStdDev)
         {
             Rectangle highestContrastRectangle = new Rectangle();
@@ -500,13 +503,13 @@ namespace ScreenToolsLib
             };
 
             var attributes = new ImageAttributes();
-            attributes.SetColorMatrix(new ColorMatrix(contrastMatrix), 
+            attributes.SetColorMatrix(new ColorMatrix(contrastMatrix),
                 ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
 
             var newImage = new Bitmap(image.Width, image.Height);
             using (var g = Graphics.FromImage(newImage))
             {
-                g.DrawImage(image, new Rectangle(0, 0, image.Width, image.Height), 0, 0, 
+                g.DrawImage(image, new Rectangle(0, 0, image.Width, image.Height), 0, 0,
                     image.Width, image.Height, GraphicsUnit.Pixel, attributes);
             }
 
