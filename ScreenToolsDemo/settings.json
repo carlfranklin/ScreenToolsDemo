@@ -10,7 +10,7 @@
       "TextAreas": [
         {
           "Text": "Still Watching?",
-          "Bounds": "855, 615, 190, 60",
+          "Bounds": "862, 624, 190, 60",
           "ComparePngPath": "",
           "ContrastAdjustment": 0,
           "OnlyCheckIfFrozen": false,
